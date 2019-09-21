@@ -1,0 +1,19 @@
+name: Meta
+version: ${project.version}
+main: fp.meta.Meta
+authors: [A_FlyingPig_]
+description: meta
+depend:
+  - Vault
+commands:
+  meta:
+    description: main cmd
+  nick:
+    description: nick
+permissions:
+  meta.admin:
+    description: main permission
+    default: op
+  meta.nick:
+    default: op
+    description: nick permission
