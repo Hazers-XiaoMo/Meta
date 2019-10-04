@@ -1,0 +1,7 @@
+change:
+  ## Player display name
+  name: true
+  ## Player display name in PlayerList
+  list: true
+  ## Tag on Players' head
+  tag: true

@@ -20,9 +20,27 @@ public final class Meta extends JavaPlugin {
 
     private static Chat chat;
 
+    public static void refresh(Player player) {
+        //Refresh prefix suffix and tag
+        String prefix = chat.getPlayerPrefix(player).replace('&', '§');
+        String suffix = chat.getPlayerSuffix(player).replace('&', '§');
+        String displayName = ((prefix.equals("") || Pattern.matches("(§[^§])*", prefix) ? prefix : prefix + " ") + player.getName() + (suffix.equals("") || Pattern.matches("(§[^§])*", suffix) ? suffix : suffix + " "));
+        if (I.getConfig().getBoolean("change.name"))
+            player.setDisplayName(displayName);
+        if (I.getConfig().getBoolean("change.list"))
+            player.setPlayerListName(displayName);
+        if (I.getConfig().getBoolean("change.tag"))
+            API.setTag(player, (prefix.equals("") || Pattern.matches("(§[^§])*", prefix) ? prefix : prefix + " "), (suffix.equals("") || Pattern.matches("(§[^§])*", suffix) ? suffix : " " + suffix));
+    }
+
+    //Instance
+    public static Meta I;
+
     @Override
     public void onEnable() {
         // Plugin startup logic
+        saveDefaultConfig();
+        I = this;
         if (!setupChat()) {
             getLogger().log(Level.WARNING, "Vault Chat Hook Error! Disabling ...");
             getServer().getPluginManager().disablePlugin(this);
@@ -50,19 +68,14 @@ public final class Meta extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        API.unregisterAll();
+        for (Player p : getServer().getOnlinePlayers()) {
+            p.setPlayerListName(p.getName());
+            p.setDisplayName(p.getName());
+        }
     }
 
-    public static void refresh(Player player) {
-        String prefix = chat.getPlayerPrefix(player).replace('&', '§');
-        String suffix = chat.getPlayerSuffix(player).replace('&', '§');
-        String displayname = ((prefix.equals("") || Pattern.matches("(§[0-9A-z])*", prefix) ? prefix : prefix + " ") + player.getName() + (suffix.equals("") || Pattern.matches("(§[0-9A-z])*", suffix) ? suffix : suffix + " "));
-        player.setDisplayName(displayname);
-        player.setPlayerListName(displayname);
-        API.setTag(player, (prefix.equals("") || Pattern.matches("(§[0-9A-z])*", prefix) ? prefix : prefix + " "), (suffix.equals("") || Pattern.matches("(§[0-9A-z])*", suffix) ? suffix : suffix + " "));
-    }
-
-    private boolean setupChat()
-    {
+    private boolean setupChat() {
         RegisteredServiceProvider<Chat> chatProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.chat.Chat.class);
         if (chatProvider != null) {
             chat = chatProvider.getProvider();
@@ -71,10 +84,8 @@ public final class Meta extends JavaPlugin {
     }
 }
 
-class API
-{
-    public static void setTag(Player p, String prefix, String suffix)
-        {
+class API {
+    public static void setTag(Player p, String prefix, String suffix) {
         if (prefix.length() > 16) {
             prefix = prefix.substring(0, 16);
         }
@@ -84,15 +95,12 @@ class API
         for (Player player : Bukkit.getOnlinePlayers()) {
             Scoreboard board = player.getScoreboard();
             Team t = board.getTeam(p.getName());
-            if (t == null)
-            {
+            if (t == null) {
                 t = board.registerNewTeam(p.getName());
                 t.setPrefix(prefix);
                 t.setSuffix(suffix);
                 t.addPlayer(p);
-            }
-            else
-            {
+            } else {
                 t = board.getTeam(p.getName());
                 t.setPrefix(prefix);
                 t.setSuffix(suffix);
